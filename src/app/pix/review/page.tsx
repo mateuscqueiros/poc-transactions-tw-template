@@ -9,10 +9,18 @@ import {
   TransactionFormType,
   TransactionKeyType,
 } from '@/features/transactions/types';
-import { Suspense, use } from 'react';
+import { createResource } from '@/lib/create-resource';
+import { Suspense } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-let destinataryPromise = getDestinatary();
+let destinataryResource: ReturnType<typeof createResource> | null = null;
+
+export function getDestinataryResource() {
+  if (!destinataryResource) {
+    destinataryResource = createResource(getDestinatary());
+  }
+  return destinataryResource;
+}
 
 export function ReviewStepContent() {
   const { watch } = useFormContext<TransactionFormType>();
@@ -21,7 +29,7 @@ export function ReviewStepContent() {
   const keyType = watch('keyType');
   const amount = watch('amount');
 
-  const data = use(destinataryPromise);
+  const data = getDestinataryResource().read() as any;
 
   const Item = ({ label, value }: { label: string; value: string }) => (
     <div className="flex justify-between text-sm">

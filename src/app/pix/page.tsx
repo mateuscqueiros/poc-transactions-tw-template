@@ -2,15 +2,27 @@
 
 import { getKeyTypes } from '@/features/transactions/api';
 import {
+  KeyType,
   TransactionFormType,
   TransactionKeyType,
 } from '@/features/transactions/types';
-import { Suspense, use } from 'react';
+import { createResource } from '@/lib/create-resource';
+import { Suspense } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-const keyTypesPromise = getKeyTypes();
+let keyTypesResource: ReturnType<typeof createResource<KeyType[]>> | null =
+  null;
+
+function getKeyTypesResource() {
+  if (!keyTypesResource) {
+    keyTypesResource = createResource<KeyType[]>(getKeyTypes());
+  }
+  return keyTypesResource;
+}
 
 function KeyTypesOptions() {
+  const keyTypesData = getKeyTypesResource().read();
+
   const {
     watch,
     register,
@@ -18,8 +30,6 @@ function KeyTypesOptions() {
     resetField,
     formState: { errors },
   } = useFormContext<TransactionFormType>();
-
-  const keyTypesData = use(keyTypesPromise);
 
   const keyType = watch('keyType');
   register('keyType', { required: 'Selecione um tipo de chave' });
